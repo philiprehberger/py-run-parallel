@@ -92,6 +92,14 @@ except ParallelError as e:
 | `aparallel(*coros) -> list` | Run async coroutines concurrently via `asyncio.gather`, return results in order. |
 | `ParallelError` | Raised when any task fails. Has `.errors` (list of exceptions/None) and `.results` (list of values/None). |
 
+
+## Development
+
+```bash
+pip install -e .
+python -m pytest tests/ -v
+```
+
 ## License
 
 MIT
