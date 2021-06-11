@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "philiprehberger-run-parallel"
-version = "0.1.4"
+version = "0.1.5"
 description = "Run multiple functions in parallel and collect results with the simplest possible API"
 readme = "README.md"
 license = "MIT"
