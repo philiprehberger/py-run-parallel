@@ -1,5 +1,9 @@
 # philiprehberger-run-parallel
 
+[![Tests](https://github.com/philiprehberger/py-run-parallel/actions/workflows/publish.yml/badge.svg)](https://github.com/philiprehberger/py-run-parallel/actions/workflows/publish.yml)
+[![PyPI version](https://img.shields.io/pypi/v/philiprehberger-run-parallel.svg)](https://pypi.org/project/philiprehberger-run-parallel/)
+[![License](https://img.shields.io/github/license/philiprehberger/py-run-parallel)](LICENSE)
+
 Run multiple functions in parallel and collect results with the simplest possible API.
 
 ## Install
