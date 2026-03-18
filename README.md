@@ -6,7 +6,7 @@
 
 Run multiple functions in parallel and collect results with the simplest possible API.
 
-## Install
+## Installation
 
 ```bash
 pip install philiprehberger-run-parallel
