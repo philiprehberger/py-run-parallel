@@ -83,7 +83,7 @@ except ParallelError as e:
     print(e.results)  # [1, None]
 ```
 
-## API Reference
+## API
 
 | Function / Class | Description |
 |---|---|
