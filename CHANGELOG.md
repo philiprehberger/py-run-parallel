@@ -1,4 +1,12 @@
 # Changelog
+
+## 0.2.0 (2026-03-27)
+
+- Add `on_progress` callback parameter to `parallel()` for tracking task completion
+- Add `parallel_process()` for CPU-bound work using `ProcessPoolExecutor`
+- Add `.github/` issue templates, PR template, and Dependabot config
+- Update README with full badge set and all standard sections
+
 ## 0.1.7- Standardize README structure and fix compliance issues
 ## 0.1.6- Add pytest and mypy tool configuration to pyproject.toml
 

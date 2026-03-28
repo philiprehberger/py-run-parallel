@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import os
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from typing import Any, Callable, Iterable, TypeVar
 
-__all__ = ["parallel", "parallel_map", "aparallel", "ParallelError"]
+__all__ = ["parallel", "parallel_map", "parallel_process", "aparallel", "ParallelError"]
 
 T = TypeVar("T")
 
@@ -35,6 +36,7 @@ class ParallelError(Exception):
 def parallel(
     *tasks: Callable[[], Any] | tuple[Callable[..., Any], ...],
     timeout: float | None = None,
+    on_progress: Callable[[int, int], None] | None = None,
 ) -> list[Any]:
     """Run callables in parallel and return results in submission order.
 
@@ -45,6 +47,8 @@ def parallel(
         *tasks: Callables or ``(fn, *args)`` tuples to execute.
         timeout: Maximum seconds to wait for all tasks.  ``None`` means no
             limit.
+        on_progress: Optional callback invoked after each task completes.
+            Receives ``(completed_count, total_count)``.
 
     Returns:
         A list of return values, one per task, in the same order they were
@@ -61,6 +65,8 @@ def parallel(
     n = len(tasks)
     results: list[Any] = [None] * n
     errors: list[BaseException | None] = [None] * n
+    completed = 0
+    lock = threading.Lock()
 
     with ThreadPoolExecutor() as executor:
         future_to_idx = {}
@@ -73,6 +79,61 @@ def parallel(
             future_to_idx[future] = idx
 
         for future in as_completed(future_to_idx, timeout=timeout):
+            idx = future_to_idx[future]
+            try:
+                results[idx] = future.result()
+            except Exception as exc:
+                errors[idx] = exc
+
+            if on_progress is not None:
+                with lock:
+                    completed += 1
+                    on_progress(completed, n)
+
+    if any(e is not None for e in errors):
+        failed = sum(1 for e in errors if e is not None)
+        raise ParallelError(
+            f"{failed} of {n} tasks failed",
+            errors=errors,
+            results=results,
+        )
+
+    return results
+
+
+def parallel_process(
+    fns: list[Callable[..., Any]],
+    max_workers: int | None = None,
+) -> list[Any]:
+    """Run callables in parallel using processes and return results in order.
+
+    Uses ``ProcessPoolExecutor`` instead of ``ThreadPoolExecutor``, making
+    it suitable for CPU-bound work that benefits from true parallelism.
+
+    Args:
+        fns: List of no-argument callables to execute.
+        max_workers: Maximum number of processes.  ``None`` lets the runtime
+            choose (typically ``os.cpu_count()``).
+
+    Returns:
+        A list of return values, one per callable, in the same order.
+
+    Raises:
+        ParallelError: If any callable raises an exception.
+    """
+    if not fns:
+        return []
+
+    n = len(fns)
+    results: list[Any] = [None] * n
+    errors: list[BaseException | None] = [None] * n
+
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        future_to_idx = {
+            executor.submit(fn): idx for idx, fn in enumerate(fns)
+        }
+
+        for future in as_completed(future_to_idx):
             idx = future_to_idx[future]
             try:
                 results[idx] = future.result()
